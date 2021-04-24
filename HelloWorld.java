@@ -8,6 +8,9 @@ public class HelloWorld {
 
 	static final int WIDTH = 20;
 	static final int HEIGHT = 30;
+	// Must alway be odd
+	static final int PADDLE_WIDTH = 5;
+	static final int PADDLE_OFFSET = (PADDLE_WIDTH - 1) / 2;
 
 	// The position of the ball
 	static int ballX = 3;
@@ -69,19 +72,25 @@ public class HelloWorld {
 			paddleCenterX = WIDTH - 3;
 		}
 
-		// Move the ball
-		ballX += ballVx;
-		ballY += ballVy;
-
+		// Update velocity
 		if (ballX >= (WIDTH - 2) || ballX <= 1) {
 			ballVx = ballVx * -1;
 		}
 
-		if (ballY <= 1) {
+		boolean isBallHittingPaddle = 
+			ballX >= paddleCenterX - PADDLE_OFFSET
+			&& ballX < paddleCenterX + PADDLE_OFFSET
+			&& ballY >= paddleY;
+
+		if (ballY <= 1 || isBallHittingPaddle) {
 			ballVy = ballVy * -1;
 		}
 
-		if (ballY > HEIGHT) {
+		// Move the ball
+		ballX += ballVx;
+		ballY += ballVy;
+
+		if (ballY > paddleY) {
 			// Game over
 			return false;
 		}
@@ -93,16 +102,16 @@ public class HelloWorld {
 		for (int y = 0 ;  y < HEIGHT ; y++) {
 			StringBuilder stringBuilder = new StringBuilder("");
 			for (int x = 0 ; x < WIDTH ; x++) {
-				if (y == paddleY
-					&& x >= (paddleCenterX - 1)
-					&& x <= (paddleCenterX + 1)) {
+				if (ballX == x && ballY == y) {
+					stringBuilder.append("o");
+				} else if (y == paddleY
+					&& x >= (paddleCenterX - PADDLE_OFFSET)
+					&& x <= (paddleCenterX + PADDLE_OFFSET)) {
 					stringBuilder.append("=");	
 				} else if (y == 0 || y == (HEIGHT - 1)) {
 					stringBuilder.append("x");
 				} else if (x == 0 || x == (WIDTH -1)) {
 					stringBuilder.append("x");
-				} else if (ballX == x && ballY == y) {
-					stringBuilder.append("o");
 				} else {
 					stringBuilder.append(" ");
 				}
@@ -118,14 +127,14 @@ public class HelloWorld {
 			boolean canGameContinue = updateState();
 			Thread.sleep(100);
 			clearScreen();
-			//if (canGameContinue) {
+			if (canGameContinue) {
 				renderFrame();
 				System.out.println(lastInput);
-			//} else {
-			//	break;
-			//}
+			} else {
+				break;
+			}
 		}
 
-		//System.out.println("Game Over");
+		System.out.println("Game Over");
 	}
 }
