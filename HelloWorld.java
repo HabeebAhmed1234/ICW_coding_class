@@ -8,23 +8,19 @@ public class HelloWorld {
 
 	static final int WIDTH = 20;
 	static final int HEIGHT = 30;
-	// Must alway be odd
-	static final int PADDLE_WIDTH = 5;
-	static final int PADDLE_OFFSET = (PADDLE_WIDTH - 1) / 2;
 
 	// The position of the ball
 	static int ballX = 3;
 	static int ballY = 6;
-
-	// The position of the paddle
-	static int paddleCenterX = 3;
-	static int paddleY = HEIGHT - 2;
 
 	// The velocity of the ball
 	static int ballVx = 1;
 	static int ballVy = 1;
 
 	static int lastInput = -1;
+
+	// Objects
+	PlayerPaddle playerPaddle = new PlayerPaddle(3, HEIGHT - 2);
 
 	public static void listenForKeyboardInput() { 
     	final JFrame frame = new JFrame();  
@@ -58,18 +54,18 @@ public class HelloWorld {
 		// 37 left
 		// 39 right
 		if (lastInput == 37) {
-			paddleCenterX -= 1;
+			playerPaddle.paddleCenterX -= 1;
 			lastInput = -1;
 		} else if (lastInput == 39) {
-			paddleCenterX += 1;
+			playerPaddle.paddleCenterX += 1;
 			lastInput = -1;
 		}
-		if (paddleCenterX <= 1) {
-			paddleCenterX = 2;
+		if (playerPaddle.paddleCenterX <= 1) {
+			playerPaddle.paddleCenterX = 2;
 		}
 
-		if (paddleCenterX >= WIDTH - 2) {
-			paddleCenterX = WIDTH - 3;
+		if (playerPaddle.paddleCenterX >= WIDTH - 2) {
+			playerPaddle.paddleCenterX = WIDTH - 3;
 		}
 
 		// Update velocity
@@ -78,9 +74,9 @@ public class HelloWorld {
 		}
 
 		boolean isBallHittingPaddle = 
-			ballX >= paddleCenterX - PADDLE_OFFSET
-			&& ballX < paddleCenterX + PADDLE_OFFSET
-			&& ballY >= paddleY;
+			ballX >= playerPaddle.getLeftEdgeXCoord();
+			&& ballX <= playerPaddle.getRightEdgeXCoord();
+			&& ballY >= playerPaddle.paddleY;
 
 		if (ballY <= 1 || isBallHittingPaddle) {
 			ballVy = ballVy * -1;
@@ -90,7 +86,7 @@ public class HelloWorld {
 		ballX += ballVx;
 		ballY += ballVy;
 
-		if (ballY > paddleY) {
+		if (ballY > playerPaddle.paddleY) {
 			// Game over
 			return false;
 		}
