@@ -16,4 +16,11 @@ class PlayerPaddle extends BasePaddle {
 
     this.cellCharacter = cellCharacter;
   }
+
+  @Override
+  public boolean isBallHittingPaddle(int ballX, int ballY) {
+    return ballX >= getLeftEdgeXCoord()
+        && ballX <= getRightEdgeXCoord()
+        && ballY >= paddleY;
+  }
 }

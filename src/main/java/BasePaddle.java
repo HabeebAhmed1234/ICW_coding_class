@@ -1,6 +1,6 @@
-abstract class BasePaddle {
+abstract class BasePaddle implements GameEntity {
 
-  // Must alway be odd
+  // Must always be odd
   static final int DEFAULT_PADDLE_WIDTH = 5;
   static final int DEFAULT_PADDLE_OFFSET = (DEFAULT_PADDLE_WIDTH - 1) / 2;
 
@@ -35,4 +35,6 @@ abstract class BasePaddle {
   public int getRightEdgeXCoord() {
     return paddleCenterX + paddleOffset;
   }
+
+  public abstract boolean isBallHittingPaddle(int ballX, int ballY);
 }
