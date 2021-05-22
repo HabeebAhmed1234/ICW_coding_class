@@ -28,6 +28,16 @@ abstract class BasePaddle implements GameEntity {
     this.paddleOffset = (width - 1) / 2;
   }
 
+  @Override
+  public char render(int x, int y) {
+    if (y == paddleY
+        && x >= (paddleCenterX - paddleOffset)
+        && x <= (paddleCenterX + paddleOffset)) {
+      return getSymbol();
+    }
+    return Constants.EMPTY_SPACE;
+  }
+
   public int getLeftEdgeXCoord() {
     return paddleCenterX - paddleOffset;
   }
@@ -36,5 +46,11 @@ abstract class BasePaddle implements GameEntity {
     return paddleCenterX + paddleOffset;
   }
 
-  public abstract boolean isBallHittingPaddle(int ballX, int ballY);
+  public boolean isBallHittingPaddle(int futureBallX, int futureBallY) {
+    return futureBallX >= getLeftEdgeXCoord()
+        && futureBallX <= getRightEdgeXCoord()
+        && futureBallY == paddleY;
+  }
+
+  protected abstract char getSymbol();
 }

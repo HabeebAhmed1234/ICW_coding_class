@@ -17,7 +17,7 @@ public class UserInputListener {
     return lastInputReturn;
   }
 
-  public void startListeningToUserInput() {
+  private void startListeningToUserInput() {
     final JFrame frame = new JFrame();
     frame.setUndecorated(true);
     frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);

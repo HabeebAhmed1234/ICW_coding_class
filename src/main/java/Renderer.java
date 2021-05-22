@@ -9,7 +9,9 @@ public class Renderer {
     this.entityStore = entityStore;
   }
 
-  public void renderFrame() {
+  public void renderFrame() throws InterruptedException {
+    Thread.sleep(100);
+    clearScreen();
     for (int y = 0; y < Constants.LEVEL_HEIGHT; y++) {
       StringBuilder stringBuilder = new StringBuilder("");
       for (int x = 0; x < Constants.LEVEL_WIDTH; x++) {
@@ -19,30 +21,19 @@ public class Renderer {
     }
   }
 
+  public static void clearScreen() {
+    System.out.print("\033[H\033[2J");
+    System.out.flush();
+  }
+
   private char getCellValue(int x, int y) {
-    for (int i = 0 ; i < entityStore.getSize() ; i++) {
+    for (int i = 0; i < entityStore.getSize(); i++) {
       GameEntity entity = entityStore.get(i);
       char cellValue = entity.render(x, y);
-      if (cellValue != Constants.EMPTY_SPACE)  {
+      if (cellValue != Constants.EMPTY_SPACE) {
         return cellValue;
       }
     }
     return ' ';
   }
 }
-
-/*
-if (ballX == x && ballY == y) {
-  stringBuilder.append("o");
-} else if (y == playerPaddle.paddleY
-    && x >= (playerPaddle.paddleCenterX - BasePaddle.DEFAULT_PADDLE_OFFSET)
-    && x <= (playerPaddle.paddleCenterX + BasePaddle.DEFAULT_PADDLE_OFFSET)) {
-  stringBuilder.append("=");
-} else if (y == 0 || y == (Constants.LEVEL_HEIGHT - 1)) {
-  stringBuilder.append("x");
-} else if (x == 0 || x == (Constants.LEVEL_WIDTH - 1)) {
-  stringBuilder.append("x");
-} else {
-  stringBuilder.append(" ");
-}
- */

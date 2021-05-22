@@ -16,4 +16,14 @@ class EnemyPaddle extends BasePaddle {
 
     this.cellCharacter = cellCharacter;
   }
+
+  @Override
+  protected char getSymbol() {
+    return cellCharacter;
+  }
+
+  @Override
+  public boolean update() {
+    return false;
+  }
 }
