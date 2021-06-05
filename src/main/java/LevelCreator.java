@@ -13,6 +13,14 @@ public class LevelCreator {
   private final UserInputListener userInputListener = new UserInputListener();
   private final EntityStore entityStore;
 
+  private Ball ball;
+  private final BallPosition ballPosition = new BallPosition() {
+    @Override
+    public int getBallX() {
+      return ball.getBallX();
+    }
+  };
+
   public LevelCreator(EntityStore entityStore) {
     this.entityStore = entityStore;
   }
@@ -22,16 +30,17 @@ public class LevelCreator {
    */
   public void createLevel() {
     EnemyPaddle enemyPaddle =
-        new EnemyPaddle(STARTING_PADDLE_X, STARTING_ENEMY_PADDLE_Y);
+        new EnemyPaddle(STARTING_PADDLE_X, STARTING_ENEMY_PADDLE_Y, ballPosition);
     PlayerPaddle playerPaddle =
         new PlayerPaddle(
             STARTING_PADDLE_X,
             STARTING_PLAYER_PADDLE_Y,
             userInputListener);
+    ball = new Ball(STARTING_BALL_X, STARTING_BALL_Y, playerPaddle, enemyPaddle);
+
     entityStore.add(enemyPaddle);
     entityStore.add(playerPaddle);
-    entityStore.add(
-        new Ball(STARTING_BALL_X, STARTING_BALL_Y, playerPaddle, enemyPaddle));
+    entityStore.add(ball);
     entityStore.add(new Walls());
   }
 }

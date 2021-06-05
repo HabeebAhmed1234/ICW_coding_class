@@ -21,6 +21,10 @@ public class Ball implements GameEntity {
     this.enemyPaddle = enemyPaddle;
   }
 
+  public int getBallX() {
+    return ballX;
+  }
+
   @Override
   public boolean update() {
     // Update velocity
