@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cctype>
 
 using namespace std;
 
@@ -77,8 +78,50 @@ void printBoard() {
     }
 }
 
+// Converts a row label (8 - 1) into a row index (0 -7).
+int convertRowLabelToRowIndex(char rowLabel) {
+    if (rowLabel >= '1' && rowLabel <= '8') {
+        int rowLabelInteger = rowLabel - '0';
+        return (rowLabelInteger - 8) / -1;
+    } else {
+        cout<<"Error: " <<rowLabel<<" is not a valid row label"<<endl;
+        return -1;
+    }
+}
+
+// Converts a label for a column (a - h or A - H) into an index (0-7).
+int convertColLabelToColIndex(char colLabel) {
+    if ((colLabel >= 'A' && colLabel <= 'H')
+     || (colLabel >= 'a' && colLabel <= 'h')) {
+        char colLabelLowerCase = tolower(colLabel);
+        return colLabelLowerCase - 'a';
+    } else {
+        cout<<"Error: "<<colLabel<<" is not a valid column label."<<endl;
+        return -1;
+    }
+}
+
+// Returns an integer array [row][col] given a user
+// typed board coordinate.
+int* getBoardIndexCoordinates(string userCoordinate) {
+    int* coordinates = new int[2];
+    coordinates[0] = -1;
+    coordinates[1] = -1;
+    if (userCoordinate.length() != 2) {
+        cout<<"Error: userCoordinate must be of length 2"<<endl;
+        return coordinates;
+    }
+    coordinates[0] = convertRowLabelToRowIndex(userCoordinate[1]);
+    coordinates[1] = convertColLabelToColIndex(userCoordinate[0]);
+    return coordinates;
+}
+
 int main() {
     intializeBoard();
     printBoard();
+    string input;
+    cin>>input;
+    int* coord = getBoardIndexCoordinates(input);
+    cout<<board[coord[0]][coord[1]]<<endl;
     return 0;
 }
