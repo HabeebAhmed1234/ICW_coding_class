@@ -3,6 +3,13 @@
 
 using namespace std;
 
+const int PLAYER_ID_NONE = -1;
+const int PLAYER_ID_1 = 1;
+const int PLAYER_ID_2 = 2;
+
+const string PLAYER_1_COLOUR = "31";
+const string PLAYER_2_COLOUR = "33";
+
 const int HEADER_LEFT_PADDING = 3;
 const char PAWN = 'P';
 const char EMPTY = '_';
@@ -10,10 +17,12 @@ const string HORIZONTAL_GRID_VALUES = "abcdefgh";
 const string SPECIAL_PIECES = "RKB$QBKR";
 
 char** board = new char*[8];
+int** playerPieceIds = new int*[8];
 
 void intializeBoard() {
     for (int row = 0 ; row < 8 ; row++) {
         board[row] = new char[8];
+        playerPieceIds[row] = new int[8];
         for (int col = 0 ; col < 8 ; col++) {
             char cellValue = EMPTY; 
             switch(row) {
@@ -29,6 +38,15 @@ void intializeBoard() {
                     break;
             }
             board[row][col] = cellValue;
+            int playerId = PLAYER_ID_NONE;
+            if (row <= 1) {
+                // This piece belongs to player 1
+                playerId = PLAYER_ID_1;
+            } else if (row >= 6) {
+                // This piece belongs to player 2
+                playerId = PLAYER_ID_2;
+            }
+            playerPieceIds[row][col] = playerId;
         }
     }
 }
@@ -44,6 +62,21 @@ void print(char c, int repeat) {
 // is shown to the user (8-1).
 int convertRowIndexToRowLabel(int rowIndex) {
     return 8 - rowIndex;
+}
+
+void resetColor() {
+    cout<<"\033[0m";
+}
+
+void setColor(string colorCode) {
+    cout<<"\033[0;"<<colorCode<<"m";
+}
+
+void printPlayerPiece(char piece, int playerId) {
+    setColor(playerId == PLAYER_ID_1
+        ? PLAYER_1_COLOUR : PLAYER_2_COLOUR);
+    cout<<piece;
+    resetColor();
 }
 
 void printBoard() {
@@ -71,9 +104,16 @@ void printBoard() {
             if (cellValue == EMPTY) {
                 cout<<"\u25A2";
             } else {
-                cout<<cellValue;
+                printPlayerPiece(
+                    cellValue, playerPieceIds[row][col]);
             }
         }
+        cout<<endl;
+    }
+}
+
+void clearScreen() {
+    for (int i = 0 ; i < 50 ; i++) {
         cout<<endl;
     }
 }
@@ -116,12 +156,53 @@ int* getBoardIndexCoordinates(string userCoordinate) {
     return coordinates;
 }
 
+char getPiece(int* coord) {
+    return board[coord[0]][coord[1]];
+}
+
+int getPlayerPieceId(int* coord) {
+    return playerPieceIds[coord[0]][coord[1]];
+}
+
+void setPiece(int* coord, char piece, int playerId) {
+    board[coord[0]][coord[1]] = piece;
+    playerPieceIds[coord[0]][coord[1]] = playerId;
+}
+
+void movePiece(int* coordFrom, int* coordTo) {
+    // Check if piece at coordFrom exists.
+    char fromPiece = getPiece(coordFrom);
+    if (fromPiece == EMPTY) {
+        cout<<"No piece to move at given coord"<<endl;
+        return;
+    }
+
+    int fromPiecePlayerId = getPlayerPieceId(coordFrom);
+    if (fromPiecePlayerId == PLAYER_ID_NONE) {
+        cout<<"No player piece to move at given coord"<<endl;
+        return;
+    }
+
+    // Remove piece from coordFrom
+    setPiece(coordFrom, EMPTY, PLAYER_ID_NONE);
+    // Add piece to coordTo
+    setPiece(coordTo, fromPiece, fromPiecePlayerId);
+}
+
 int main() {
     intializeBoard();
-    printBoard();
-    string input;
-    cin>>input;
-    int* coord = getBoardIndexCoordinates(input);
-    cout<<board[coord[0]][coord[1]]<<endl;
+    while (true) {
+        printBoard();
+        string input;
+        cin>>input;
+        if (input.length() != 4) {
+            cout<<"Error: your command must be 4 chars in length (eg. a6a6)"<<endl;
+            continue;
+        }
+        int* coordFrom = getBoardIndexCoordinates(input.substr(0,2));
+        int* coordTo = getBoardIndexCoordinates(input.substr(2,4));
+        movePiece(coordFrom, coordTo);
+        clearScreen();
+    }
     return 0;
 }
