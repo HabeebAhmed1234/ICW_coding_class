@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cctype>
+#include <sstream>
 
 using namespace std;
 
@@ -7,6 +8,7 @@ const int PLAYER_ID_NONE = -1;
 const int PLAYER_ID_1 = 1;
 const int PLAYER_ID_2 = 2;
 
+const string ERROR_COLOUR = "36";
 const string PLAYER_1_COLOUR = "31";
 const string PLAYER_2_COLOUR = "33";
 
@@ -18,6 +20,10 @@ const string SPECIAL_PIECES = "RKB$QBKR";
 
 char** board = new char*[8];
 int** playerPieceIds = new int*[8];
+int currentPlayerTurnId = PLAYER_ID_1;
+ostringstream error;
+ostringstream player1CapturedPieces;
+ostringstream player2CapturedPieces;
 
 void intializeBoard() {
     for (int row = 0 ; row < 8 ; row++) {
@@ -79,6 +85,30 @@ void printPlayerPiece(char piece, int playerId) {
     resetColor();
 }
 
+void printHorizontalBorder(char borderSymbol) {
+    // Print the horizontal border.
+    print(' ', HEADER_LEFT_PADDING);
+    for (int i = 0 ; i < HORIZONTAL_GRID_VALUES.length() ; i++) {
+        cout<<' '<<borderSymbol;
+    }
+    cout<<endl;
+}
+
+void printCapturedPieces() {
+    if (player1CapturedPieces.str() != "") {
+        cout<<"Player 1 lost pieces: ";
+        setColor(PLAYER_1_COLOUR);
+        cout<<player1CapturedPieces.str()<<endl;
+        resetColor();
+    }
+    if (player2CapturedPieces.str() != "") {
+        cout<<"Player 2 lost pieces: ";
+        setColor(PLAYER_2_COLOUR);
+        cout<<player2CapturedPieces.str()<<endl;
+        resetColor();
+    }
+}
+
 void printBoard() {
     // Print horizontal grid
     print(' ', HEADER_LEFT_PADDING);
@@ -87,12 +117,7 @@ void printBoard() {
     }
     cout<<endl;
 
-    // Print the horizontal border.
-    print(' ', HEADER_LEFT_PADDING);
-    for (int i = 0 ; i < HORIZONTAL_GRID_VALUES.length() ; i++) {
-        cout<<' '<<'_';
-    }
-    cout<<endl;
+    printHorizontalBorder('_');
 
     // Print the board
     for (int row = 0 ; row < 8 ; row++) {
@@ -110,6 +135,15 @@ void printBoard() {
         }
         cout<<endl;
     }
+
+    printHorizontalBorder('-');
+    printCapturedPieces();
+}
+
+void printError() {
+    setColor(ERROR_COLOUR);
+    cout<<error.str()<<endl;
+    resetColor();
 }
 
 void clearScreen() {
@@ -124,7 +158,7 @@ int convertRowLabelToRowIndex(char rowLabel) {
         int rowLabelInteger = rowLabel - '0';
         return (rowLabelInteger - 8) / -1;
     } else {
-        cout<<"Error: " <<rowLabel<<" is not a valid row label"<<endl;
+        error<<"Error: " <<rowLabel<<" is not a valid row label";
         return -1;
     }
 }
@@ -136,7 +170,7 @@ int convertColLabelToColIndex(char colLabel) {
         char colLabelLowerCase = tolower(colLabel);
         return colLabelLowerCase - 'a';
     } else {
-        cout<<"Error: "<<colLabel<<" is not a valid column label."<<endl;
+        error<<"Error: "<<colLabel<<" is not a valid column label.";
         return -1;
     }
 }
@@ -148,7 +182,7 @@ int* getBoardIndexCoordinates(string userCoordinate) {
     coordinates[0] = -1;
     coordinates[1] = -1;
     if (userCoordinate.length() != 2) {
-        cout<<"Error: userCoordinate must be of length 2"<<endl;
+        error<<"Error: userCoordinate must be of length 2";
         return coordinates;
     }
     coordinates[0] = convertRowLabelToRowIndex(userCoordinate[1]);
@@ -173,14 +207,32 @@ void movePiece(int* coordFrom, int* coordTo) {
     // Check if piece at coordFrom exists.
     char fromPiece = getPiece(coordFrom);
     if (fromPiece == EMPTY) {
-        cout<<"No piece to move at given coord"<<endl;
+        error<<"No piece to move at given coord";
         return;
     }
 
     int fromPiecePlayerId = getPlayerPieceId(coordFrom);
     if (fromPiecePlayerId == PLAYER_ID_NONE) {
-        cout<<"No player piece to move at given coord"<<endl;
+        error<<"No player piece to move at given coord";
         return;
+    }
+    if (fromPiecePlayerId != currentPlayerTurnId) {
+        error<<"Piece belonging to player "<<fromPiecePlayerId<<" cannot be moved by player "<<currentPlayerTurnId;
+        return;
+    }
+    int toPiecePlayerId = getPlayerPieceId(coordTo);
+    if (toPiecePlayerId != PLAYER_ID_NONE && toPiecePlayerId == currentPlayerTurnId) {
+        error<<"you cannot take your own piece";
+        return;
+    }
+    char toPiece = getPiece(coordTo);
+    if (toPiecePlayerId != PLAYER_ID_NONE) {
+        // Track this captured piece
+        if (toPiecePlayerId == PLAYER_ID_1) {
+            player1CapturedPieces<<" "<<toPiece;
+        } else {
+            player2CapturedPieces<<" "<<toPiece;
+        }
     }
 
     // Remove piece from coordFrom
@@ -189,14 +241,34 @@ void movePiece(int* coordFrom, int* coordTo) {
     setPiece(coordTo, fromPiece, fromPiecePlayerId);
 }
 
+void clearError() {
+    error.str("");
+    error.clear();
+}
+
+void switchPlayerTurn() {
+    if (currentPlayerTurnId == PLAYER_ID_1) {
+        currentPlayerTurnId = PLAYER_ID_2;
+    } else {
+        currentPlayerTurnId = PLAYER_ID_1;
+    }
+}
+
 int main() {
     intializeBoard();
     while (true) {
         printBoard();
+        if (error.str() != "") {
+            printError();
+            clearError();
+        } else {
+            switchPlayerTurn();
+        }
+        cout<<"Player "<<currentPlayerTurnId<<" what is your move?"<<endl;
         string input;
         cin>>input;
         if (input.length() != 4) {
-            cout<<"Error: your command must be 4 chars in length (eg. a6a6)"<<endl;
+            error<<"Error: your command must be 4 chars in length (eg. a6a6)";
             continue;
         }
         int* coordFrom = getBoardIndexCoordinates(input.substr(0,2));
