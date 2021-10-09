@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cctype>
 #include <sstream>
+#include <cmath> 
 
 using namespace std;
 
@@ -194,6 +195,10 @@ char getPiece(int* coord) {
     return board[coord[0]][coord[1]];
 }
 
+char getPiece(int row, int col) {
+    return board[row][col];
+}
+
 int getPlayerPieceId(int* coord) {
     return playerPieceIds[coord[0]][coord[1]];
 }
@@ -201,6 +206,56 @@ int getPlayerPieceId(int* coord) {
 void setPiece(int* coord, char piece, int playerId) {
     board[coord[0]][coord[1]] = piece;
     playerPieceIds[coord[0]][coord[1]] = playerId;
+}
+
+bool isValidKnightMove(int* coordFrom, int* coordTo) {
+    return (abs(coordTo[0] - coordFrom[0]) == 1 && abs(coordTo[1] - coordFrom[1]) == 2)
+        || (abs(coordTo[0] - coordFrom[0]) == 2 && abs(coordTo[1] - coordFrom[1]) == 1);
+}
+
+bool isValidRookMove(int* coordFrom, int* coordTo) {
+    bool isValidDirection = false;
+    bool isColliding = false;
+    if (coordFrom[0] == coordTo[0] && coordFrom[1] != coordTo[1]) {
+        // moving horizontally
+        isValidDirection = true;
+        int direction = coordTo[1] - coordFrom[1];
+        if (direction > 0) {
+            // moving right
+            for (int col = (coordFrom[1] + 1) ; col <= (coordTo[1] - 1) ; col++) {
+                char piece = getPiece(coordFrom[0], col);
+                if (piece != EMPTY) {
+                    isColliding = true;
+                    break;
+                }
+            }
+        } else if (direction < 0) {
+            // moving left
+        }
+    } else if (coordFrom[1] == coordTo[1] && coordFrom[0] != coordTo[0]) {
+        // moving vertically
+        isValidDirection = true;
+
+    }
+    return isValidDirection && !isColliding;
+}
+
+bool isValidMove(char piece, int playerId, int* coordFrom, int* coordTo) {
+    bool isValid = true;
+
+    switch(piece) {
+       case 'K':
+        isValid = isValidKnightMove(coordFrom, coordTo);
+        break;
+       case 'R':
+        isValid = isValidRookMove(coordFrom, coordTo);
+        break;
+    }    
+
+    if (!isValid) {
+        error<<piece<<" cannot be moved in that way. Try again.";
+    }
+    return isValid;
 }
 
 void movePiece(int* coordFrom, int* coordTo) {
@@ -225,6 +280,13 @@ void movePiece(int* coordFrom, int* coordTo) {
         error<<"you cannot take your own piece";
         return;
     }
+
+    // Validate direction and collision of piece
+    if (!isValidMove(fromPiece, currentPlayerTurnId, coordFrom, coordTo)) {
+        return;
+    }
+
+    // Move piece
     char toPiece = getPiece(coordTo);
     if (toPiecePlayerId != PLAYER_ID_NONE) {
         // Track this captured piece
